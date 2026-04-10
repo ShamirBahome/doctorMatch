@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Doctor Search</title>
+</head>
+<body>
+    <header>
+        <h1>Find a Doctor</h1>
+        <form id="searchForm">
+            <input type="text" id="searchQuery" placeholder="Search by name...">
+            <select id="statusFilter">
+                <option value="">Select status</option>
+                <option value="accepting">Accepting Patients</option>
+                <option value="not_accepting">Not Accepting Patients</option>
+            </select>
+            <select id="languageFilter">
+                <option value="">Select Language</option>
+                <option value="english">English</option>
+                <option value="spanish">Spanish</option>
+                <option value="french">French</option>
+            </select>
+            <select id="genderFilter">
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="non_binary">Non-binary</option>
+            </select>
+            <button type="submit">Search</button>
+        </form>
+    </header>
+    <main>
+        <section id="doctorCards" class="cards-grid">
+            <article class="doctor-card">
+                <h2>Dr. John Doe</h2>
+                <p>Specialty: General Physician</p>
+                <p>Status: Accepting Patients</p>
+                <p>Languages: English, Spanish</p>
+                <p>Gender: Male</p>
+            </article>
+            <article class="doctor-card">
+                <h2>Dr. Jane Smith</h2>
+                <p>Specialty: Pediatrician</p>
+                <p>Status: Not Accepting Patients</p>
+                <p>Languages: English</p>
+                <p>Gender: Female</p>
+            </article>
+            <!-- Additional doctor cards can be added here -->
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Doctor Match</p>
+    </footer>
+</body>
+</html>
