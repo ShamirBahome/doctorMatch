@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Walk-In Clinics - Guelph Doctor Finder{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+    <h1 class="text-3xl font-bold mb-2">🏥 Walk-In Clinics in Guelph</h1>
+    <p class="text-gray-500 mb-8">Find walk-in clinics with estimated wait times</p>
+
+    <div class="space-y-4">
+        {% for clinic in clinics %}
+        <div class="bg-white rounded-2xl shadow p-6">
+            <div class="flex justify-between items-start flex-wrap gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">{{ clinic.name }}</h3>
+                    <div class="mt-2 space-y-1 text-gray-600">
+                        <div>📍 {{ clinic.address }}</div>
+                        <div>📞 {{ clinic.phone }}</div>
+                        <div>🕐 {{ clinic.hours }}</div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    {% if clinic.is_open %}
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                        🟢 Open Now
+                    </span>
+                    {% else %}
+                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
+                        🔴 Closed
+                    </span>
+                    {% endif %}
+
+                    {% if clinic.is_open %}
+                    <div class="mt-2">
+                        <div class="text-3xl font-bold
+                            {% if clinic.current_wait_minutes <= 30 %}text-green-600
+                            {% elif clinic.current_wait_minutes <= 60 %}text-yellow-600
+                            {% else %}text-red-600{% endif %}">
+                            {{ clinic.current_wait_minutes }} min
+                        </div>
+                        <div class="text-gray-500 text-sm">estimated wait</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not clinics %}
+    <div class="bg-white rounded-2xl shadow p-12 text-center">
+        <div class="text-6xl mb-4">🏥</div>
+        <h3 class="text-xl font-bold">No clinic data available</h3>
+        <p class="text-gray-500 mt-2">Please seed the database first</p>
+        <a href="/seed" class="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg">
+            Seed Database
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

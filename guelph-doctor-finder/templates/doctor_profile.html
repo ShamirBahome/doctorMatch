@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% block title %}{{ doctor.full_name }} - Guelph Doctor Finder{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+    <!-- BACK BUTTON -->
+    <a href="/search" class="text-blue-600 hover:text-blue-800 mb-4 inline-block">← Back to Search</a>
+
+    <!-- DOCTOR HEADER -->
+    <div class="bg-white rounded-2xl shadow p-8 mb-6">
+        <div class="flex justify-between items-start flex-wrap gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">{{ doctor.full_name }}</h1>
+                <p class="text-xl text-gray-500 mt-1">{{ doctor.clinic_name }}</p>
+                <p class="text-gray-500">{{ doctor.specializations }}</p>
+            </div>
+            {% if doctor.accepting_new_patients %}
+            <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full font-semibold">
+                ✅ Accepting New Patients
+            </span>
+            {% else %}
+            <span class="bg-red-100 text-red-700 px-4 py-2 rounded-full font-semibold">
+                ❌ Not Accepting
+            </span>
+            {% endif %}
+        </div>
+
+        <!-- DETAILS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div class="flex items-center text-gray-600">📍 {{ doctor.address }}, {{ doctor.city }}</div>
+            <div class="flex items-center text-gray-600">📞 {{ doctor.phone }}</div>
+            <div class="flex items-center text-gray-600">🌐 {{ doctor.languages }}</div>
+            <div class="flex items-center text-gray-600">👤 {{ doctor.gender }}</div>
+            {% if doctor.wait_time_weeks %}
+            <div class="flex items-center text-gray-600">⏰ ~{{ doctor.wait_time_weeks }} weeks wait</div>
+            {% endif %}
+            {% if doctor.years_of_experience %}
+            <div class="flex items-center text-gray-600">🎓 {{ doctor.years_of_experience }} years experience</div>
+            {% endif %}
+            {% if doctor.education %}
+            <div class="flex items-center text-gray-600">📚 {{ doctor.education }}</div>
+            {% endif %}
+        </div>
+
+        <!-- RATING -->
+        <div class="mt-6 flex items-center">
+            <span class="text-4xl font-bold text-gray-900">{{ doctor.average_rating }}</span>
+            <span class="text-yellow-400 text-3xl ml-2">⭐</span>
+            <span class="text-gray-400 ml-2 text-lg">({{ doctor.review_count }} reviews)</span>
+        </div>
+
+        <!-- RATING BARS -->
+        <div class="mt-4 space-y-2">
+            {% for star in [5, 4, 3, 2, 1] %}
+            <div class="flex items-center gap-2">
+                <span class="text-sm w-8">{{ star }}⭐</span>
+                <div class="flex-1 bg-gray-200 rounded-full h-3">
+                    <div class="bg-yellow-400 h-3 rounded-full"
+                         style="width: {% if doctor.review_count > 0 %}{{ (rating_distribution[star] / doctor.review_count * 100)|int }}{% else %}0{% endif %}%">
+                    </div>
+                </div>
+                <span class="text-sm text-gray-500 w-8">{{ rating_distribution[star] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- CLINIC HOURS -->
+    <div class="bg-white rounded-2xl shadow p-8 mb-6">
+        <h2 class="text-2xl font-bold mb-4">🕐 Clinic Hours</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {% for day, hours in doctor.clinic_hours.items() %}
+            <div class="flex justify-between py-2 border-b">
+                <span class="font-medium">{{ day }}</span>
+                <span class="{% if hours == 'Closed' %}text-red-500{% else %}text-green-600{% endif %}">
+                    {{ hours }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div class="bg-white rounded-2xl shadow p-8 mb-6">
+        <h2 class="text-2xl font-bold mb-6">💬 Reviews</h2>
+
+        {% if reviews %}
+            {% for review in reviews %}
+            <div class="border-b pb-4 mb-4 last:border-b-0 last:mb-0 last:pb-0">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="font-semibold">{{ review.user.first_name }}</span>
+                        <span class="text-yellow-400 ml-2">
+                            {% for i in range(review.rating) %}⭐{% endfor %}
+                        </span>
+                    </div>
+                    <span class="text-gray-400 text-sm">{{ review.created_at.strftime('%B %d, %Y') }}</span>
+                </div>
+                {% if review.title %}
+                <h4 class="font-semibold mt-2">{{ review.title }}</h4>
+                {% endif %}
+                <p class="text-gray-600 mt-1">{{ review.comment }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-gray-500 text-center py-8">No reviews yet. Be the first to review!</p>
+        {% endif %}
+    </div>
+
+    <!-- ADD REVIEW FORM -->
+    <div class="bg-white rounded-2xl shadow p-8">
+        <h2 class="text-2xl font-bold mb-6">✍️ Write a Review</h2>
+
+        {% if current_user %}
+        <form id="reviewForm" class="space-y-4">
+            <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
+
+            <div>
+                <label class="block text-sm font-medium mb-1">Rating *</label>
+                <select name="rating" required class="border rounded-lg p-2 w-full">
+                    <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                    <option value="4">⭐⭐⭐⭐ Good</option>
+                    <option value="3">⭐⭐⭐ Average</option>
+                    <option value="2">⭐⭐ Below Average</option>
+                    <option value="1">⭐ Poor</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1">Title</label>
+                <input type="text" name="title" placeholder="Summary of your experience"
+                       class="border rounded-lg p-2 w-full">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1">Your Review</label>
+                <textarea name="comment" rows="4" placeholder="Share your experience..."
+                          class="border rounded-lg p-2 w-full"></textarea>
+            </div>
+
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                Submit Review
+            </button>
+        </form>
+        {% else %}
+        <div class="text-center py-8">
+            <p class="text-gray-500 mb-4">Please log in to write a review</p>
+            <a href="/login" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Login</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const form = document.getElementById('reviewForm');
+if (form) {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {
+            doctor_id: parseInt(formData.get('doctor_id')),
+            rating: parseInt(formData.get('rating')),
+            title: formData.get('title'),
+            comment: formData.get('comment'),
+        };
+
+        try {
+            const response = await fetch('/api/reviews', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('Review submitted! Thank you!');
+                location.reload();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            alert('Error submitting review.');
+        }
+    });
+}
+</script>
+{% endblock %}

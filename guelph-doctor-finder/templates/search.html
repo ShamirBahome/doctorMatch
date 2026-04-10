@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}Search Doctors - Guelph Doctor Finder{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+    <h1 class="text-3xl font-bold mb-6">
+        🔍 Search Results
+        <span class="text-gray-400 text-lg">({{ total_results }} found)</span>
+    </h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+        <!-- FILTERS SIDEBAR -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-2xl shadow p-6 sticky top-20">
+                <h3 class="font-bold text-lg mb-4">🎛️ Filters</h3>
+
+                <form action="/search" method="GET">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Search</label>
+                        <input type="text" name="q" value="{{ filters.q }}"
+                               placeholder="Doctor name..."
+                               class="w-full border rounded-lg p-2">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" name="accepting" value="true"
+                                   {% if filters.accepting %}checked{% endif %}
+                                   class="w-4 h-4">
+                            <span class="text-sm font-medium">Accepting New Patients</span>
+                        </label>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Gender</label>
+                        <select name="gender" class="w-full border rounded-lg p-2">
+                            <option value="">Any</option>
+                            <option value="Male" {% if filters.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if filters.gender == 'Female' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Language</label>
+                        <select name="language" class="w-full border rounded-lg p-2">
+                            <option value="">Any</option>
+                            {% for lang in all_languages %}
+                            <option value="{{ lang }}" {% if filters.language == lang %}selected{% endif %}>{{ lang }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Sort By</label>
+                        <select name="sort" class="w-full border rounded-lg p-2">
+                            <option value="default" {% if filters.sort == 'default' %}selected{% endif %}>Default</option>
+                            <option value="name" {% if filters.sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="experience" {% if filters.sort == 'experience' %}selected{% endif %}>Most Experienced</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                        Apply Filters
+                    </button>
+
+                    <a href="/search" class="block text-center text-sm text-gray-500 mt-2 hover:text-blue-600">
+                        Clear All Filters
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="lg:col-span-3 space-y-4">
+            {% if doctors %}
+                {% for doctor in doctors %}
+                <a href="/doctor/{{ doctor.id }}" class="block">
+                    <div class="bg-white rounded-2xl shadow hover:shadow-lg transition p-6
+                              border-l-4 {% if doctor.accepting_new_patients %}border-green-500{% else %}border-red-300{% endif %}">
+
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">{{ doctor.full_name }}</h3>
+                                <p class="text-gray-500">{{ doctor.clinic_name }}</p>
+                            </div>
+
+                            {% if doctor.accepting_new_patients %}
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                ✅ Accepting
+                            </span>
+                            {% else %}
+                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                ❌ Not Accepting
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                            <div>📍 {{ doctor.address }}</div>
+                            <div>📞 {{ doctor.phone }}</div>
+                            <div>🌐 {{ doctor.languages }}</div>
+                            <div>🎓 {{ doctor.years_of_experience }} years experience</div>
+                            {% if doctor.wait_time_weeks %}
+                            <div>⏰ ~{{ doctor.wait_time_weeks }} weeks wait</div>
+                            {% endif %}
+                            <div>🏥 {{ doctor.specializations }}</div>
+                        </div>
+
+                        <div class="mt-3 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="text-yellow-400">⭐</span>
+                                <span class="ml-1 font-semibold">{{ doctor.average_rating }}</span>
+                                <span class="text-gray-400 ml-1">({{ doctor.review_count }} reviews)</span>
+                            </div>
+                            <span class="text-blue-600 font-semibold text-sm">View Profile →</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="bg-white rounded-2xl shadow p-12 text-center">
+                    <div class="text-6xl mb-4">😔</div>
+                    <h3 class="text-xl font-bold">No doctors found</h3>
+                    <p class="text-gray-500 mt-2">Try adjusting your filters</p>
+                    <a href="/search" class="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg">
+                        Clear Filters
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
