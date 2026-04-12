@@ -22,7 +22,7 @@ def seed_database():
             years_of_experience=15, cpso_number="CPSO-001", verified=True,
         ),
         Doctor(
-            first_name="Michael", last_name="Chen", gender="Male",
+            first_name="Emmanuel", last_name="Mahama", gender="Male",
             phone="519-555-0102", clinic_name="Stone Road Medical Centre",
             address="435 Stone Rd W, Guelph", postal_code="N1G 2X6",
             latitude=43.5289, longitude=-80.2673,
@@ -33,7 +33,7 @@ def seed_database():
             years_of_experience=10, cpso_number="CPSO-002", verified=True,
         ),
         Doctor(
-            first_name="Priya", last_name="Patel", gender="Female",
+            first_name="Leon", last_name="Tshimaria", gender="Male",
             phone="519-555-0103", clinic_name="Westwood Family Medicine",
             address="55 Delhi St, Guelph", postal_code="N1E 4J1",
             latitude=43.5501, longitude=-80.2350,
@@ -44,7 +44,7 @@ def seed_database():
             years_of_experience=20, cpso_number="CPSO-003", verified=True,
         ),
         Doctor(
-            first_name="James", last_name="Wilson", gender="Male",
+            first_name="Isaack", last_name="Salib", gender="Male",
             phone="519-555-0104", clinic_name="Gordon Street Medical Centre",
             address="170 Gordon St, Guelph", postal_code="N1H 4G5",
             latitude=43.5399, longitude=-80.2509,

@@ -1,4 +1,4 @@
-# Run from this directory: cd guelph_doctor_finder && make run
+# Run from this directory:
 VENV ?= venv
 PYTHON := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip

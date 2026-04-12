@@ -258,9 +258,155 @@ def api_clinics():
     clinics = WalkinClinic.query.all()
     return jsonify({'success': True, 'data': [c.to_dict() for c in clinics]})
 
+# ==========================================
+# ADMIN ROUTES
+# ==========================================
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user = get_current_user()
+        if not user or not user.is_admin:
+            flash('Admin access required.', 'error')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
+
+
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    stats = {
+        'total_doctors': Doctor.query.count(),
+        'accepting_doctors': Doctor.query.filter_by(accepting_new_patients=True).count(),
+        'total_users': User.query.count(),
+        'total_reviews': Review.query.count(),
+    }
+    doctors = Doctor.query.order_by(Doctor.last_name).all()
+    reviews = Review.query.order_by(Review.created_at.desc()).all()
+    users = User.query.order_by(User.created_at.desc()).all()
+
+    return render_template('admin.html',
+                           stats=stats,
+                           doctors=doctors,
+                           reviews=reviews,
+                           users=users)
+
+
+@app.route('/admin/add-doctor', methods=['POST'])
+@admin_required
+def admin_add_doctor():
+    doctor = Doctor(
+        first_name=request.form.get('first_name'),
+        last_name=request.form.get('last_name'),
+        gender=request.form.get('gender'),
+        phone=request.form.get('phone'),
+        clinic_name=request.form.get('clinic_name'),
+        address=request.form.get('address'),
+        postal_code=request.form.get('postal_code'),
+        cpso_number=request.form.get('cpso_number') or None,
+        languages=request.form.get('languages', 'English'),
+        specializations=request.form.get('specializations', 'Family Medicine'),
+        education=request.form.get('education'),
+        years_of_experience=request.form.get('years_of_experience', type=int),
+        wait_time_weeks=request.form.get('wait_time_weeks', type=int),
+        accepting_new_patients=request.form.get('accepting_new_patients') == 'true',
+    )
+    db.session.add(doctor)
+    db.session.commit()
+    flash(f'{doctor.full_name} added successfully!', 'success')
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/edit/<int:doctor_id>', methods=['GET', 'POST'])
+@admin_required
+def admin_edit_doctor(doctor_id):
+    doctor = Doctor.query.get_or_404(doctor_id)
+
+    if request.method == 'POST':
+        doctor.first_name = request.form.get('first_name')
+        doctor.last_name = request.form.get('last_name')
+        doctor.gender = request.form.get('gender')
+        doctor.phone = request.form.get('phone')
+        doctor.clinic_name = request.form.get('clinic_name')
+        doctor.address = request.form.get('address')
+        doctor.postal_code = request.form.get('postal_code')
+        doctor.cpso_number = request.form.get('cpso_number') or doctor.cpso_number
+        doctor.languages = request.form.get('languages', 'English')
+        doctor.specializations = request.form.get('specializations', 'Family Medicine')
+        doctor.education = request.form.get('education')
+        doctor.years_of_experience = request.form.get('years_of_experience', type=int)
+        doctor.wait_time_weeks = request.form.get('wait_time_weeks', type=int)
+        doctor.accepting_new_patients = request.form.get('accepting_new_patients') == 'true'
+        doctor.updated_at = datetime.utcnow()
+
+        db.session.commit()
+        flash(f'{doctor.full_name} updated successfully!', 'success')
+        return redirect(url_for('admin_dashboard'))
+
+    return render_template('admin_edit.html', doctor=doctor)
+
+
+@app.route('/api/admin/toggle-status', methods=['POST'])
+@admin_required
+def api_toggle_status():
+    data = request.json
+    doctor = Doctor.query.get(data.get('doctor_id'))
+    if not doctor:
+        return jsonify({'success': False, 'error': 'Doctor not found'}), 404
+
+    doctor.accepting_new_patients = data.get('accepting')
+    doctor.updated_at = datetime.utcnow()
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Status updated!'})
+
+
+@app.route('/api/admin/delete-doctor/<int:doctor_id>', methods=['DELETE'])
+@admin_required
+def api_delete_doctor(doctor_id):
+    doctor = Doctor.query.get(doctor_id)
+    if not doctor:
+        return jsonify({'success': False, 'error': 'Doctor not found'}), 404
+
+    db.session.delete(doctor)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Doctor deleted!'})
+
+
+@app.route('/api/admin/delete-review/<int:review_id>', methods=['DELETE'])
+@admin_required
+def api_delete_review(review_id):
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({'success': False, 'error': 'Review not found'}), 404
+
+    db.session.delete(review)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Review deleted!'})
+
+
+@app.route('/create-admin')
+def create_admin():
+    existing = User.query.filter_by(email='admin@guelphdoctorfinder.ca').first()
+    if existing:
+        flash('Admin account already exists!', 'warning')
+        return redirect(url_for('home'))
+
+    admin = User(
+        email='admin@guelphdoctorfinder.ca',
+        first_name='Admin',
+        last_name='Owner',
+        is_admin=True,
+    )
+    admin.set_password('admin123')
+    db.session.add(admin)
+    db.session.commit()
+    flash('Admin account created! Login with admin@guelphdoctorfinder.ca / admin123', 'success')
+    return redirect(url_for('login'))
+
 
 # ==========================================
-# RUN APP
+# RUN APP (THIS MUST BE THE VERY LAST LINE)
 # ==========================================
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
