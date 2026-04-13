@@ -43,6 +43,8 @@ python3 app.py
 # 6. Load sample data (first time only)
 # http://127.0.0.1:5000/seed
 
+//Or just  follow this webpage where I deployed it on Render: https://doctormatch.onrender.com/
+
 
 📬 Contact
 Developer: Shamir
